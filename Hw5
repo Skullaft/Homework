@@ -1,0 +1,379 @@
+CREATE OR REPLACE FUNCTION bookings.fn_insert_bookings(
+    p_book_ref char(6),
+    p_book_date timestamp,
+    p_total_amount numeric(10,2)
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO bookings.bookings(book_ref, book_date, total_amount)
+    VALUES (p_book_ref, p_book_date, p_total_amount);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_select_bookings(
+    p_book_ref char(6)
+) RETURNS refcursor LANGUAGE plpgsql AS $$
+DECLARE v_cur refcursor;
+BEGIN
+    OPEN v_cur FOR SELECT book_ref, book_date, total_amount
+                   FROM bookings.bookings WHERE book_ref = p_book_ref;
+    RETURN v_cur;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_update_bookings(
+    p_book_ref char(6),
+    p_book_date timestamp,
+    p_total_amount numeric(10,2)
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.bookings WHERE book_ref = p_book_ref) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.bookings WHERE book_ref = p_book_ref;
+    INSERT INTO bookings.bookings(book_ref, book_date, total_amount)
+    VALUES (p_book_ref, p_book_date, p_total_amount);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_delete_bookings(
+    p_book_ref char(6)
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.bookings WHERE book_ref = p_book_ref) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.bookings WHERE book_ref = p_book_ref;
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_insert_tickets(
+    p_ticket_no char(13),
+    p_book_ref char(6),
+    p_passenger_id varchar(20),
+    p_passenger_name text,
+    p_contact_data jsonb
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO bookings.tickets(ticket_no, book_ref, passenger_id, passenger_name, contact_data)
+    VALUES (p_ticket_no, p_book_ref, p_passenger_id, p_passenger_name, p_contact_data);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_select_tickets(
+    p_ticket_no char(13)
+) RETURNS refcursor LANGUAGE plpgsql AS $$
+DECLARE v_cur refcursor;
+BEGIN
+    OPEN v_cur FOR SELECT ticket_no, book_ref, passenger_id, passenger_name, contact_data
+                   FROM bookings.tickets WHERE ticket_no = p_ticket_no;
+    RETURN v_cur;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_update_tickets(
+    p_ticket_no char(13),
+    p_book_ref char(6),
+    p_passenger_id varchar(20),
+    p_passenger_name text,
+    p_contact_data jsonb
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.tickets WHERE ticket_no = p_ticket_no) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.tickets WHERE ticket_no = p_ticket_no;
+    INSERT INTO bookings.tickets(ticket_no, book_ref, passenger_id, passenger_name, contact_data)
+    VALUES (p_ticket_no, p_book_ref, p_passenger_id, p_passenger_name, p_contact_data);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_delete_tickets(
+    p_ticket_no char(13)
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.tickets WHERE ticket_no = p_ticket_no) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.tickets WHERE ticket_no = p_ticket_no;
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_insert_flights(
+    p_flight_id integer,
+    p_flight_no char(6),
+    p_scheduled_departure timestamptz,
+    p_scheduled_arrival timestamptz,
+    p_departure_airport char(3),
+    p_arrival_airport char(3),
+    p_status varchar(20),
+    p_aircraft_code char(3),
+    p_actual_departure timestamptz,
+    p_actual_arrival timestamptz
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO bookings.flights(flight_id, flight_no, scheduled_departure, scheduled_arrival,
+        departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival)
+    VALUES (p_flight_id, p_flight_no, p_scheduled_departure, p_scheduled_arrival,
+        p_departure_airport, p_arrival_airport, p_status, p_aircraft_code,
+        p_actual_departure, p_actual_arrival);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_select_flights(
+    p_flight_id integer
+) RETURNS refcursor LANGUAGE plpgsql AS $$
+DECLARE v_cur refcursor;
+BEGIN
+    OPEN v_cur FOR SELECT flight_id, flight_no, scheduled_departure, scheduled_arrival,
+                          departure_airport, arrival_airport, status, aircraft_code,
+                          actual_departure, actual_arrival
+                   FROM bookings.flights WHERE flight_id = p_flight_id;
+    RETURN v_cur;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_update_flights(
+    p_flight_id integer,
+    p_flight_no char(6),
+    p_scheduled_departure timestamptz,
+    p_scheduled_arrival timestamptz,
+    p_departure_airport char(3),
+    p_arrival_airport char(3),
+    p_status varchar(20),
+    p_aircraft_code char(3),
+    p_actual_departure timestamptz,
+    p_actual_arrival timestamptz
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.flights WHERE flight_id = p_flight_id) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.flights WHERE flight_id = p_flight_id;
+    INSERT INTO bookings.flights(flight_id, flight_no, scheduled_departure, scheduled_arrival,
+        departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival)
+    VALUES (p_flight_id, p_flight_no, p_scheduled_departure, p_scheduled_arrival,
+        p_departure_airport, p_arrival_airport, p_status, p_aircraft_code,
+        p_actual_departure, p_actual_arrival);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_delete_flights(
+    p_flight_id integer
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.flights WHERE flight_id = p_flight_id) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.flights WHERE flight_id = p_flight_id;
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_insert_ticket_flights(
+    p_ticket_no char(13),
+    p_flight_id integer,
+    p_fare_conditions varchar(10),
+    p_amount numeric(10,2)
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO bookings.ticket_flights(ticket_no, flight_id, fare_conditions, amount)
+    VALUES (p_ticket_no, p_flight_id, p_fare_conditions, p_amount);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_select_ticket_flights(
+    p_ticket_no char(13),
+    p_flight_id integer
+) RETURNS refcursor LANGUAGE plpgsql AS $$
+DECLARE v_cur refcursor;
+BEGIN
+    OPEN v_cur FOR SELECT ticket_no, flight_id, fare_conditions, amount
+                   FROM bookings.ticket_flights
+                   WHERE ticket_no = p_ticket_no AND flight_id = p_flight_id;
+    RETURN v_cur;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_update_ticket_flights(
+    p_ticket_no char(13),
+    p_flight_id integer,
+    p_fare_conditions varchar(10),
+    p_amount numeric(10,2)
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.ticket_flights
+                   WHERE ticket_no = p_ticket_no AND flight_id = p_flight_id) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.ticket_flights
+    WHERE ticket_no = p_ticket_no AND flight_id = p_flight_id;
+    INSERT INTO bookings.ticket_flights(ticket_no, flight_id, fare_conditions, amount)
+    VALUES (p_ticket_no, p_flight_id, p_fare_conditions, p_amount);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_delete_ticket_flights(
+    p_ticket_no char(13),
+    p_flight_id integer
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.ticket_flights
+                   WHERE ticket_no = p_ticket_no AND flight_id = p_flight_id) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.ticket_flights
+    WHERE ticket_no = p_ticket_no AND flight_id = p_flight_id;
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_insert_boarding_passes(
+    p_ticket_no char(13),
+    p_flight_id integer,
+    p_boarding_no integer,
+    p_seat_no varchar(4)
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO bookings.boarding_passes(ticket_no, flight_id, boarding_no, seat_no)
+    VALUES (p_ticket_no, p_flight_id, p_boarding_no, p_seat_no);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_select_boarding_passes(
+    p_ticket_no char(13),
+    p_flight_id integer,
+    p_boarding_no integer
+) RETURNS refcursor LANGUAGE plpgsql AS $$
+DECLARE v_cur refcursor;
+BEGIN
+    OPEN v_cur FOR SELECT ticket_no, flight_id, boarding_no, seat_no
+                   FROM bookings.boarding_passes
+                   WHERE ticket_no = p_ticket_no
+                     AND flight_id = p_flight_id
+                     AND boarding_no = p_boarding_no;
+    RETURN v_cur;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_update_boarding_passes(
+    p_ticket_no char(13),
+    p_flight_id integer,
+    p_boarding_no integer,
+    p_seat_no varchar(4)
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.boarding_passes
+                   WHERE ticket_no = p_ticket_no
+                     AND flight_id = p_flight_id
+                     AND boarding_no = p_boarding_no) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.boarding_passes
+    WHERE ticket_no = p_ticket_no
+      AND flight_id = p_flight_id
+      AND boarding_no = p_boarding_no;
+    INSERT INTO bookings.boarding_passes(ticket_no, flight_id, boarding_no, seat_no)
+    VALUES (p_ticket_no, p_flight_id, p_boarding_no, p_seat_no);
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_delete_boarding_passes(
+    p_ticket_no char(13),
+    p_flight_id integer,
+    p_boarding_no integer
+) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM bookings.boarding_passes
+                   WHERE ticket_no = p_ticket_no
+                     AND flight_id = p_flight_id
+                     AND boarding_no = p_boarding_no) THEN
+        RETURN 0;
+    END IF;
+    DELETE FROM bookings.boarding_passes
+    WHERE ticket_no = p_ticket_no
+      AND flight_id = p_flight_id
+      AND boarding_no = p_boarding_no;
+    RETURN 1;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '%', SQLERRM;
+    RETURN -1;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_select_flight(
+    p_flight_id integer
+) RETURNS refcursor LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN bookings.fn_select_flights(p_flight_id);
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_select_flight(
+    p_scheduled_departure timestamptz
+) RETURNS refcursor LANGUAGE plpgsql AS $$
+DECLARE v_cur refcursor;
+BEGIN
+    OPEN v_cur FOR SELECT flight_id, flight_no, scheduled_departure, scheduled_arrival,
+                          departure_airport, arrival_airport, status, aircraft_code,
+                          actual_departure, actual_arrival
+                   FROM bookings.flights
+                   WHERE scheduled_departure = p_scheduled_departure;
+    RETURN v_cur;
+END; $$;
+
+CREATE OR REPLACE FUNCTION bookings.fn_select_flight(
+    p_scheduled_departure timestamptz,
+    p_operator char(1)
+) RETURNS refcursor LANGUAGE plpgsql AS $$
+DECLARE v_cur refcursor;
+BEGIN
+    IF p_operator = '>' THEN
+        OPEN v_cur FOR SELECT flight_id, flight_no, scheduled_departure, scheduled_arrival,
+                              departure_airport, arrival_airport, status, aircraft_code,
+                              actual_departure, actual_arrival
+                       FROM bookings.flights
+                       WHERE scheduled_departure > p_scheduled_departure;
+    ELSIF p_operator = '<' THEN
+        OPEN v_cur FOR SELECT flight_id, flight_no, scheduled_departure, scheduled_arrival,
+                              departure_airport, arrival_airport, status, aircraft_code,
+                              actual_departure, actual_arrival
+                       FROM bookings.flights
+                       WHERE scheduled_departure < p_scheduled_departure;
+    ELSE
+        RAISE EXCEPTION 'operator must be > or <';
+    END IF;
+    RETURN v_cur;
+END; $$;
